@@ -20,6 +20,10 @@ contract Fomo721 is ERC721 {
 	uint256 public fomo721PieceCount;
 	uint256 public burnRatio = 500; // 50%
 
+	uint256 public countdown = 1 hours;
+	uint256 public lastMintTime;
+	address public lastMinter;
+
 	bytes32 public _F; 
 	bytes32 public _o;
 	bytes32 public _m;
@@ -33,6 +37,13 @@ contract Fomo721 is ERC721 {
     }
 	mapping(uint256 => Fomo721Token) tokens;
     uint256 burnedCounter = 0;
+
+	struct Winner {
+		uint256 timestamp;
+		uint256 tokenId;
+		address owner;
+	}
+	Winner[] public winners;
 
 	address owner;
     constructor(
@@ -117,6 +128,21 @@ contract Fomo721 is ERC721 {
 		tokens[tokenId] = Fomo721Token(tokenId, char);
 		fomo721PieceCount += 1;
 		_mint(msg.sender, tokenId);
+
+		if(lastMintTime == 0) {
+			lastMintTime = block.timestamp;
+			lastMinter = msg.sender;
+		} else {
+			if(lastMintTime.add(countdown) < block.timestamp) {
+				tokenId = _getNextTokenId();
+				tokens[tokenId] = Fomo721Token(tokenId, "Fomo721");
+				_mint(lastMinter, tokenId);
+				winners.push(Winner(block.timestamp, tokenId, lastMinter));
+
+				lastMinter = msg.sender;
+				lastMintTime = block.timestamp;
+			}
+		}
 	}
 
 	function check(uint256 id, bytes32 v) internal view returns (bool) {
