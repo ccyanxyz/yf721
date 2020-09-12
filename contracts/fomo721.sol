@@ -97,6 +97,10 @@ contract Fomo721 is ERC721 {
 		return fomo721PieceCount;
 	}
 
+	function getFomo721Info(uint256 idx) external view returns (string memory) {
+		return tokens[idx].char;
+	}
+
 	function mintFomo721Piece() external {
 		require(msg.sender == tx.origin);
 		FomoToken.safeTransferFrom(msg.sender, address(this), mintPieceFee);
