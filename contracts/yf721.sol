@@ -7,35 +7,34 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./rnd.sol";
 
-contract Fomo721 is ERC721 {
+contract YF721 is ERC721 {
     using SafeMath for uint256;
 	using SafeERC20 for IERC20;
     
 	uint256 constant public mintPieceFee = 100 * 1e18;
-	IERC20 public FomoToken;
+	IERC20 public YF20;
 	address public prizePool;
 	address constant public burnAddress = 0x00000000000000000000000000000000DeaDBeef;
 	
-	uint256 public fomo721Count;
-	uint256 public fomo721PieceCount;
+	uint256 public yf721Count;
+	uint256 public yf721PieceCount;
 	uint256 public burnRatio = 500; // 50%
 
 	uint256 public countdown = 1 hours;
 	uint256 public lastMintTime;
 	address public lastMinter;
 
-	bytes32 public _F; 
-	bytes32 public _o;
-	bytes32 public _m;
+	bytes32 public _Y; 
+	bytes32 public _F;
 	bytes32 public _7;
 	bytes32 public _2;
 	bytes32 public _1;
     
-    struct Fomo721Token {
+    struct YF721Token {
         uint256 id;
-		string char; // Fomo721
+		string char; // YF721
     }
-	mapping(uint256 => Fomo721Token) tokens;
+	mapping(uint256 => YF721Token) tokens;
     uint256 burnedCounter = 0;
 
 	struct Winner {
@@ -47,19 +46,16 @@ contract Fomo721 is ERC721 {
 
 	address owner;
     constructor(
-		string memory _name,
-		string memory _symbol,
-		address _fomotoken
-	) ERC721(_name, _symbol) public {
+		address _yf20
+	) ERC721("YF721", "YF721") public {
 		owner = msg.sender;
-		fomo721Count = 0;
-		fomo721PieceCount = 0;
-		FomoToken = IERC20(_fomotoken);
+		yf721Count = 0;
+		yf721PieceCount = 0;
+		YF20 = IERC20(_yf20);
 		prizePool = burnAddress;
 
+		_Y = keccak256(bytes("Y")); 
 		_F = keccak256(bytes("F")); 
-		_o = keccak256(bytes("o")); 
-		_m = keccak256(bytes("m")); 
 		_7 = keccak256(bytes("7")); 
 		_2 = keccak256(bytes("2")); 
 		_1 = keccak256(bytes("1")); 
@@ -89,52 +85,46 @@ contract Fomo721 is ERC721 {
 		return rnd;
 	}
 
-	function getFomo721Count() external view returns (uint256) {
-		return fomo721Count;
+	function getYF721Count() external view returns (uint256) {
+		return yf721Count;
 	}
 
-	function getFomo721PieceCount() external view returns (uint256) {
-		return fomo721PieceCount;
+	function getYF721PieceCount() external view returns (uint256) {
+		return yf721PieceCount;
 	}
 
-	function getFomo721Info(uint256 idx) external view returns (string memory) {
+	function getYF721Info(uint256 idx) external view returns (string memory) {
 		return tokens[idx].char;
 	}
 
-	function mintFomo721Piece() external {
+	function mintYF721Piece() external {
 		require(msg.sender == tx.origin);
-		FomoToken.safeTransferFrom(msg.sender, address(this), mintPieceFee);
-		FomoToken.safeTransferFrom(address(this), burnAddress, mintPieceFee.mul(burnRatio).div(1000));
-		FomoToken.safeTransferFrom(address(this), prizePool, FomoToken.balanceOf(address(this)));
+		YF20.safeTransferFrom(msg.sender, address(this), mintPieceFee);
+		YF20.safeTransferFrom(address(this), burnAddress, mintPieceFee.mul(burnRatio).div(1000));
+		YF20.safeTransferFrom(address(this), prizePool, YF20.balanceOf(address(this)));
 		uint256 rnd = getRandom();
 		string memory char;
-		if (rnd >= 9990) {
-			// 0.001
-			char = "1";
-		} else if (rnd >= 9980) {
+		if (rnd >= 9980) {
 			// 0.002
+			char = "1";
+		} else if (rnd >= 9960) {
+			// 0.004
 			char = "2";
-		} else if (rnd >= 9930) {
-			// 0.007
+		} else if (rnd >= 9860) {
+			// 0.014
 			char = "7";
-		} else if (rnd >= 9000) {
-			// 0.1
-			char = "o";
-		} else if (rnd >= 8000) {
-			// 0.2
-			char = "m";
-		} else if (rnd >= 4000) {
-			// 0.6
-			char = "o";
-		} else if (rnd >= 1000) {
-			// 0.9
+		} else if (rnd >= 7000) {
+			// 0.3
 			char = "F";
+		} else if (rnd >= 5000) {
+			// 0.5
+			char = "Y";
 		} else {
 			char = "Don't give up, bro!";
 		}
 		uint256 tokenId = _getNextTokenId();
-		tokens[tokenId] = Fomo721Token(tokenId, char);
-		fomo721PieceCount += 1;
+		tokens[tokenId] = YF721Token(tokenId, char);
+		yf721PieceCount += 1;
 		_mint(msg.sender, tokenId);
 
 		if(lastMintTime == 0) {
@@ -143,7 +133,7 @@ contract Fomo721 is ERC721 {
 		} else {
 			if(lastMintTime.add(countdown) < block.timestamp) {
 				tokenId = _getNextTokenId();
-				tokens[tokenId] = Fomo721Token(tokenId, "Fomo721");
+				tokens[tokenId] = YF721Token(tokenId, "YF721");
 				_mint(lastMinter, tokenId);
 				winners.push(Winner(block.timestamp, tokenId, lastMinter));
 
@@ -154,7 +144,7 @@ contract Fomo721 is ERC721 {
 	}
 
 	function check(uint256 id, bytes32 v) internal view returns (bool) {
-		Fomo721Token memory token = tokens[id];
+		YF721Token memory token = tokens[id];
 		return ownerOf(id) == msg.sender && keccak256(bytes(token.char)) == v;
 	}
 
@@ -163,14 +153,14 @@ contract Fomo721 is ERC721 {
 		_burn(id);
 	}
 
-	function mintFomo721(uint256 id1, uint256 id2, uint256 id3, uint256 id4, uint256 id5, uint256 id6, uint256 id7) external {
-		require(check(id1, _F) && check(id2, _o) && check(id3, _m) && check(id4, _o) && check(id5, _7) && check(id6, _2) && check(id7, _1), "check failed");
-		_burn(id1); _burn(id2); _burn(id3); _burn(id4); _burn(id5); _burn(id6); _burn(id7);
-		fomo721PieceCount = fomo721PieceCount.sub(7);
+	function mintFomo721(uint256 id1, uint256 id2, uint256 id3, uint256 id4, uint256 id5) external {
+		require(check(id1, _Y) && check(id2, _F) && check(id3, _7) && check(id4, _2) && check(id5, _1), "check failed");
+		_burn(id1); _burn(id2); _burn(id3); _burn(id4); _burn(id5);
+		yf721PieceCount = yf721PieceCount.sub(5);
 		uint256 tokenId = _getNextTokenId();
-		tokens[tokenId] = Fomo721Token(tokenId, "Fomo721");
+		tokens[tokenId] = YF721Token(tokenId, "YF721");
 		_mint(msg.sender, tokenId);
-		fomo721Count = fomo721Count.add(1);
+		yf721Count = yf721Count.add(1);
 	}
 
     function _getNextTokenId() private view returns (uint256) {

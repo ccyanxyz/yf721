@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
-contract Fomo721Auction {
+contract YF721Auction {
     using SafeMath for uint256;
     using Address for address;
 	using SafeERC20 for IERC20;
@@ -17,8 +17,8 @@ contract Fomo721Auction {
     event Claim(uint256 auctionIndex, address claimer);
 
     enum Status { pending, active, finished }
-	IERC20 public FomoToken;
-	IERC721 public Fomo721;
+	IERC20 public YF20;
+	IERC721 public YF721;
 
     struct Auction {
         uint256 tokenId;
@@ -31,9 +31,9 @@ contract Fomo721Auction {
     }
     Auction[] public auctions;
 
-	constructor(address _fomotoken, address _fomo721) public {
-		FomoToken = IERC20(_fomotoken);
-		Fomo721 = IERC721(_fomo721);
+	constructor(address _yf20, address _yf721) public {
+		YF20 = IERC20(_yf20);
+		YF721 = IERC721(_yf721);
 	}
 
     function createAuction(uint256 _tokenId,
@@ -41,8 +41,8 @@ contract Fomo721Auction {
                            uint256 _startTime,
                            uint256 _duration) public returns (uint256) {
 
-        require(Fomo721.ownerOf(_tokenId) == msg.sender);
-		Fomo721.safeTransferFrom(msg.sender, address(this), _tokenId);
+        require(YF721.ownerOf(_tokenId) == msg.sender);
+		YF721.safeTransferFrom(msg.sender, address(this), _tokenId);
 
         if (_startTime == 0) { _startTime = now; }
 
@@ -71,10 +71,10 @@ contract Fomo721Auction {
         if (amount > auction.currentBidAmount) {
             // we got a better bid. Return tokens to the previous best bidder
             // and register the sender as `currentBidOwner`
-            FomoToken.safeTransferFrom(msg.sender, address(this), amount);
+            YF20.safeTransferFrom(msg.sender, address(this), amount);
             if (auction.currentBidAmount != 0) {
                 // return funds to the previuos bidder
-                FomoToken.safeTransferFrom(
+                YF20.safeTransferFrom(
 					address(this),
                     auction.currentBidOwner,
                     auction.currentBidAmount
@@ -122,24 +122,24 @@ contract Fomo721Auction {
         return auctions[auctionIndex].currentBidOwner;
     }
 
-    function claimFomoToken(uint256 auctionIndex) public {
+    function claimYF20(uint256 auctionIndex) public {
         require(isFinished(auctionIndex));
         Auction storage auction = auctions[auctionIndex];
 
         require(auction.creator == msg.sender);
-        FomoToken.safeTransferFrom(address(this), auction.creator, auction.currentBidAmount);
+        YF20.safeTransferFrom(address(this), auction.creator, auction.currentBidAmount);
 
         emit Claim(auctionIndex, auction.creator);
     }
 
-    function claimFomo721(uint256 auctionIndex) public {
+    function claimYF721(uint256 auctionIndex) public {
         require(isFinished(auctionIndex));
         Auction storage auction = auctions[auctionIndex];
 
         address winner = getWinner(auctionIndex);
         require(winner == msg.sender);
 
-        Fomo721.transferFrom(address(this), winner, auction.tokenId);
+        YF721.transferFrom(address(this), winner, auction.tokenId);
         emit Claim(auctionIndex, winner);
     }
 }

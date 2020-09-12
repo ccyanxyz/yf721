@@ -34,10 +34,6 @@ contract LPTokenWrapper {
         return _unrealized[account].add(_balances[account].mul(_profitPerShare.sub(_realized[account])).div(1e18));
     }    
 
-    function makeProfit(uint256 amount) internal {
-        _profitPerShare = _profitPerShare.add(amount.mul(1e18).div(totalSupply()));        
-    }
-
     modifier update(address account) {
         // Tells the contract that the buyer doesn't deserve dividends for the tokens before they owned them;
         // really i know you think you do but you don't
@@ -58,10 +54,7 @@ contract LPTokenWrapper {
     function withdraw(uint256 amount) update(msg.sender) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        uint256 tax = amount.div(20);
-        amount = amount.sub(tax);
         LPT.safeTransfer(msg.sender, amount);
-        makeProfit(tax);
     }
 
     function claim() update(msg.sender) public {
@@ -74,7 +67,7 @@ contract LPTokenWrapper {
     }
 }
 
-contract FomoPool is LPTokenWrapper {
+contract YF721Pool is LPTokenWrapper {
     uint256 public DURATION = 7 days;
 	uint256 public initReward = 10000 * 1e18;
 	uint256 public startTime;
@@ -84,7 +77,7 @@ contract FomoPool is LPTokenWrapper {
     uint256 public rewardPerTokenStored;
 	uint256 public devFee = 30; // 30 / 1000 = 3%
 	uint256 public poolShare = 100; // 100 / 1000 = 10%
-	address public devAddress = 0x7C37f83F25Bc39Ba2734f44C791470a695953e3B;
+	address public devAddress;
 	address public prizePool;
 
     mapping(address => uint256) public userRewardPerTokenPaid;
