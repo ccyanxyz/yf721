@@ -78,7 +78,11 @@ contract Fomo721 is ERC721 {
 	function setPrizePool(address _prizepool) external onlyOwner onlyOnce {
 		prizePool = _prizepool;
 	}
-    
+
+	function getWinnersLength() external view returns (uint256) {
+		return winners.length;
+	}
+
 	function getRandom() internal view returns (uint256) {
 		uint256 seed = uint256(keccak256(abi.encodePacked(now, block.difficulty, msg.sender)));
 		uint256 rnd = UniformRandomNumber.uniform(seed, 10000);
