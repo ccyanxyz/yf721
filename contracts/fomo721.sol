@@ -4,38 +4,21 @@ import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-
-library UniformRandomNumber {
-  /// @notice Select a random number without modulo bias using a random seed and upper bound
-  /// @param _entropy The seed for randomness
-  /// @param _upperBound The upper bound of the desired number
-  /// @return A random number less than the _upperBound
-  function uniform(uint256 _entropy, uint256 _upperBound) internal pure returns (uint256) {
-    require(_upperBound > 0, "UniformRand/min-bound");
-    uint256 min = -_upperBound % _upperBound;
-    uint256 random = _entropy;
-    while (true) {
-      if (random >= min) {
-        break;
-      }
-      random = uint256(keccak256(abi.encodePacked(random)));
-    }
-    return random % _upperBound;
-  }
-}
+import "./rnd.sol";
 
 contract Fomo721 is ERC721 {
     using SafeMath for uint256;
 	using SafeERC20 for IERC20;
     
-	IERC20 constant public FomoToken = IERC20(0x00000000000000000000000000000000DeaDBeef);
 	uint256 constant public mintPieceFee = 100 * 1e18;
+	IERC20 public FomoToken;
+	address public prizePool;
 	address constant public burnAddress = 0x00000000000000000000000000000000DeaDBeef;
 	
 	uint256 public fomo721Count;
 	uint256 public fomo721PieceCount;
+	uint256 public burnRatio = 500; // 50%
 
 	bytes32 public _F; 
 	bytes32 public _o;
@@ -51,15 +34,38 @@ contract Fomo721 is ERC721 {
 	mapping(uint256 => Fomo721Token) tokens;
     uint256 burnedCounter = 0;
 
-    constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) public {
+	address owner;
+    constructor(
+		string memory _name,
+		string memory _symbol,
+		address _fomotoken
+	) ERC721(_name, _symbol) public {
+		owner = msg.sender;
 		fomo721Count = 0;
 		fomo721PieceCount = 0;
+		FomoToken = IERC20(_fomotoken);
+		prizePool = burnAddress;
+
 		_F = keccak256(bytes("F")); 
 		_o = keccak256(bytes("o")); 
 		_m = keccak256(bytes("m")); 
 		_7 = keccak256(bytes("7")); 
 		_2 = keccak256(bytes("2")); 
 		_1 = keccak256(bytes("1")); 
+	}
+
+	modifier onlyOwner() {
+		require(msg.sender == owner);
+		_;
+	}
+
+	modifier onlyOnce() {
+		require(prizePool == burnAddress);
+		_;
+	}
+
+	function setPrizePool(address _prizepool) external onlyOwner onlyOnce {
+		prizePool = _prizepool;
 	}
     
 	function getRandom() internal view returns (uint256) {
@@ -78,7 +84,9 @@ contract Fomo721 is ERC721 {
 
 	function mintFomo721Piece() external {
 		require(msg.sender == tx.origin);
-		FomoToken.safeTransferFrom(msg.sender, burnAddress, mintPieceFee);
+		FomoToken.safeTransferFrom(msg.sender, address(this), mintPieceFee);
+		FomoToken.safeTransferFrom(address(this), burnAddress, mintPieceFee.mul(burnRatio).div(1000));
+		FomoToken.safeTransferFrom(address(this), prizePool, FomoToken.balanceOf(address(this)));
 		uint256 rnd = getRandom();
 		string memory char;
 		if (rnd >= 9990) {

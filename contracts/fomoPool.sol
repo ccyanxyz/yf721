@@ -9,7 +9,10 @@ contract LPTokenWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public constant LPT = IERC20(0xCd4079b9713CdD1e629492B9c07Ebd0dbD9F5202);
+    IERC20 public LPT;
+	constructor(address _lpt) public {
+		LPT = IERC20(_lpt);
+	}
 
     uint256 public _totalSupply;
     mapping(address => uint256) public _balances;
@@ -92,12 +95,19 @@ contract FomoPool is LPTokenWrapper {
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-    IERC20 constant public FomoToken = IERC20(0xc7fD9aE2cf8542D71186877e21107E1F3A0b55ef);
+    IERC20 public FomoToken;
 
-    constructor(address _prizePool) public {
+    constructor(
+		address _lpt,
+		address _fomotoken,
+		address _devaddr,
+		address _prizepool
+	) LPTokenWrapper(_lpt) public {
         _balances[msg.sender] = 1; // avoid divided by 0
         _totalSupply = 1;
-        prizePool = _prizePool;
+        prizePool = _prizepool;
+		devAddress = _devaddr;
+		FomoToken = IERC20(_fomotoken);
     }
 
     modifier updateReward(address account) {

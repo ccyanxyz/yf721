@@ -5,34 +5,24 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-
-library UniformRandomNumber {
-  /// @notice Select a random number without modulo bias using a random seed and upper bound
-  /// @param _entropy The seed for randomness
-  /// @param _upperBound The upper bound of the desired number
-  /// @return A random number less than the _upperBound
-  function uniform(uint256 _entropy, uint256 _upperBound) internal pure returns (uint256) {
-    require(_upperBound > 0, "UniformRand/min-bound");
-    uint256 min = -_upperBound % _upperBound;
-    uint256 random = _entropy;
-    while (true) {
-      if (random >= min) {
-        break;
-      }
-      random = uint256(keccak256(abi.encodePacked(random)));
-    }
-    return random % _upperBound;
-  }
-}
+import "./rnd.sol";
 
 contract FomoPrizePool {
     using SafeMath for uint256;
 	using SafeERC20 for IERC20;
     
-	IERC20 constant public FomoToken = IERC20(0x00000000000000000000000000000000DeaDBeef);
-	IERC721 constant public Fomo721 = IERC721(0x00000000000000000000000000000000DeaDBeef);
+	IERC20 public FomoToken;
+	IERC721 public Fomo721;
+	uint256 public minFomo = 10 * 1e18;
 	address constant public burnAddress = 0x00000000000000000000000000000000DeaDBeef;
-	uint256 constant public minFomo = 10 * 1e18;
+
+	constructor(
+		address _fomotoken,
+		address _fomo721
+	) public {
+		FomoToken = IERC20(_fomotoken);
+		Fomo721 = IERC721(_fomo721);
+	}
 
 	function getRandom() internal view returns (uint256) {
 		uint256 seed = uint256(keccak256(abi.encodePacked(now, block.difficulty, msg.sender)));

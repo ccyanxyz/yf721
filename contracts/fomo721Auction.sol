@@ -17,13 +17,12 @@ contract Fomo721Auction {
     event Claim(uint256 auctionIndex, address claimer);
 
     enum Status { pending, active, finished }
-	IERC20 constant public FomoToken = IERC20(0x00000000000000000000000000000000DeaDBeef);
-	IERC721 constant public Fomo721 = IERC721(0x00000000000000000000000000000000DeaDBeef);
+	IERC20 public FomoToken;
+	IERC721 public Fomo721;
 
     struct Auction {
         uint256 tokenId;
         address creator;
-
         uint256 startTime;
         uint256 duration;
         uint256 currentBidAmount;
@@ -31,6 +30,11 @@ contract Fomo721Auction {
         uint256 bidCount;
     }
     Auction[] public auctions;
+
+	constructor(address _fomotoken, address _fomo721) public {
+		FomoToken = IERC20(_fomotoken);
+		Fomo721 = IERC721(_fomo721);
+	}
 
     function createAuction(uint256 _tokenId,
                            uint256 _startPrice,
