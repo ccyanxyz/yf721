@@ -496,7 +496,188 @@ library SafeERC20 {
     }
 }
 
-// File: contracts/fomoPool.sol
+// File: @openzeppelin/contracts/introspection/IERC165.sol
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.6.0;
+
+/**
+ * @dev Interface of the ERC165 standard, as defined in the
+ * https://eips.ethereum.org/EIPS/eip-165[EIP].
+ *
+ * Implementers can declare support of contract interfaces, which can then be
+ * queried by others ({ERC165Checker}).
+ *
+ * For an implementation, see {ERC165}.
+ */
+interface IERC165 {
+    /**
+     * @dev Returns true if this contract implements the interface defined by
+     * `interfaceId`. See the corresponding
+     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]
+     * to learn more about how these ids are created.
+     *
+     * This function call must use less than 30 000 gas.
+     */
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
+}
+
+// File: @openzeppelin/contracts/token/ERC721/IERC721.sol
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.6.2;
+
+
+/**
+ * @dev Required interface of an ERC721 compliant contract.
+ */
+interface IERC721 is IERC165 {
+    /**
+     * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
+     */
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+
+    /**
+     * @dev Emitted when `owner` enables `approved` to manage the `tokenId` token.
+     */
+    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
+
+    /**
+     * @dev Emitted when `owner` enables or disables (`approved`) `operator` to manage all of its assets.
+     */
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
+
+    /**
+     * @dev Returns the number of tokens in ``owner``'s account.
+     */
+    function balanceOf(address owner) external view returns (uint256 balance);
+
+    /**
+     * @dev Returns the owner of the `tokenId` token.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function ownerOf(uint256 tokenId) external view returns (address owner);
+
+    /**
+     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
+     * are aware of the ERC721 protocol to prevent tokens from being forever locked.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must exist and be owned by `from`.
+     * - If the caller is not `from`, it must be have been allowed to move this token by either {approve} or {setApprovalForAll}.
+     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
+     *
+     * Emits a {Transfer} event.
+     */
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
+
+    /**
+     * @dev Transfers `tokenId` token from `from` to `to`.
+     *
+     * WARNING: Usage of this method is discouraged, use {safeTransferFrom} whenever possible.
+     *
+     * Requirements:
+     *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+     * - `tokenId` token must be owned by `from`.
+     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transferFrom(address from, address to, uint256 tokenId) external;
+
+    /**
+     * @dev Gives permission to `to` to transfer `tokenId` token to another account.
+     * The approval is cleared when the token is transferred.
+     *
+     * Only a single account can be approved at a time, so approving the zero address clears previous approvals.
+     *
+     * Requirements:
+     *
+     * - The caller must own the token or be an approved operator.
+     * - `tokenId` must exist.
+     *
+     * Emits an {Approval} event.
+     */
+    function approve(address to, uint256 tokenId) external;
+
+    /**
+     * @dev Returns the account approved for `tokenId` token.
+     *
+     * Requirements:
+     *
+     * - `tokenId` must exist.
+     */
+    function getApproved(uint256 tokenId) external view returns (address operator);
+
+    /**
+     * @dev Approve or remove `operator` as an operator for the caller.
+     * Operators can call {transferFrom} or {safeTransferFrom} for any token owned by the caller.
+     *
+     * Requirements:
+     *
+     * - The `operator` cannot be the caller.
+     *
+     * Emits an {ApprovalForAll} event.
+     */
+    function setApprovalForAll(address operator, bool _approved) external;
+
+    /**
+     * @dev Returns if the `operator` is allowed to manage all of the assets of `owner`.
+     *
+     * See {setApprovalForAll}
+     */
+    function isApprovedForAll(address owner, address operator) external view returns (bool);
+
+    /**
+      * @dev Safely transfers `tokenId` token from `from` to `to`.
+      *
+      * Requirements:
+      *
+     * - `from` cannot be the zero address.
+     * - `to` cannot be the zero address.
+      * - `tokenId` token must exist and be owned by `from`.
+      * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
+      * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
+      *
+      * Emits a {Transfer} event.
+      */
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) external;
+}
+
+// File: contracts/rnd.sol
+
+pragma solidity ^0.6.0;
+
+library UniformRandomNumber {
+  /// @notice Select a random number without modulo bias using a random seed and upper bound
+  /// @param _entropy The seed for randomness
+  /// @param _upperBound The upper bound of the desired number
+  /// @return A random number less than the _upperBound
+  function uniform(uint256 _entropy, uint256 _upperBound) internal pure returns (uint256) {
+    require(_upperBound > 0, "UniformRand/min-bound");
+    uint256 min = -_upperBound % _upperBound;
+    uint256 random = _entropy;
+    while (true) {
+      if (random >= min) {
+        break;
+      }
+      random = uint256(keccak256(abi.encodePacked(random)));
+    }
+    return random % _upperBound;
+  }
+}
+
+// File: contracts/yf721PrizePool.sol
 
 pragma solidity ^0.6.0;
 
@@ -504,210 +685,51 @@ pragma solidity ^0.6.0;
 
 
 
-contract LPTokenWrapper {
-    using SafeMath for uint256;
-    using SafeERC20 for IERC20;
 
-    IERC20 public LPT;
-	constructor(address _lpt) public {
-		LPT = IERC20(_lpt);
-	}
 
-    uint256 public _totalSupply;
-    mapping(address => uint256) public _balances;
-
-    uint256 public _profitPerShare; // x 1e18, monotonically increasing.
-    mapping(address => uint256) public _unrealized; // x 1e18
-    mapping(address => uint256) public _realized; // last paid _profitPerShare
-    event LPTPaid(address indexed user, uint256 profit);
-
-    function totalSupply() public view returns (uint256) {
-        return _totalSupply;
-    }
-
-    function balanceOf(address account) public view returns (uint256) {
-        return _balances[account];
-    }
-
-    function unrealizedProfit(address account) public view returns (uint256) {
-        return _unrealized[account].add(_balances[account].mul(_profitPerShare.sub(_realized[account])).div(1e18));
-    }    
-
-    function makeProfit(uint256 amount) internal {
-        _profitPerShare = _profitPerShare.add(amount.mul(1e18).div(totalSupply()));        
-    }
-
-    modifier update(address account) {
-        // Tells the contract that the buyer doesn't deserve dividends for the tokens before they owned them;
-        // really i know you think you do but you don't
-        // https://etherscan.io/address/0xb3775fb83f7d12a36e0475abdd1fca35c091efbe#code
-        if (account != address(0)) {
-            _unrealized[account] = unrealizedProfit(account);
-            _realized[account] = _profitPerShare;
-        }
-        _;
-    }    
-
-    function stake(uint256 amount) update(msg.sender) public virtual {
-        _totalSupply = _totalSupply.add(amount);
-        _balances[msg.sender] = _balances[msg.sender].add(amount);
-        LPT.safeTransferFrom(msg.sender, address(this), amount);
-    }
-
-    function withdraw(uint256 amount) update(msg.sender) public virtual {
-        _totalSupply = _totalSupply.sub(amount);
-        _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        uint256 tax = amount.div(20);
-        amount = amount.sub(tax);
-        LPT.safeTransfer(msg.sender, amount);
-        makeProfit(tax);
-    }
-
-    function claim() update(msg.sender) public {
-        uint256 profit = _unrealized[msg.sender];
-        if (profit != 0) {
-            _unrealized[msg.sender] = 0;
-            LPT.safeTransfer(msg.sender, profit);
-            emit LPTPaid(msg.sender, profit);
-        }
-    }
+interface IYF721 is IERC721 {
+	function getYF721Info(uint256 index) external view returns (string memory);
 }
 
-contract FomoPool is LPTokenWrapper {
-    uint256 public DURATION = 7 days;
-	uint256 public initReward = 10000 * 1e18;
-	uint256 public startTime;
-    uint256 public periodFinish;
-    uint256 public rewardRate;
-    uint256 public lastUpdateTime;
-    uint256 public rewardPerTokenStored;
-	uint256 public devFee = 30; // 30 / 1000 = 3%
-	uint256 public poolShare = 100; // 100 / 1000 = 10%
-	address public devAddress = 0x7C37f83F25Bc39Ba2734f44C791470a695953e3B;
-	address public prizePool;
+contract YF721PrizePool {
+    using SafeMath for uint256;
+	using SafeERC20 for IERC20;
+    
+	IERC20 public YF20;
+	IYF721 public YF721;
+	uint256 public minYF20 = 10 * 1e18;
+	address constant public burnAddress = 0x00000000000000000000000000000000DeaDBeef;
 
-    mapping(address => uint256) public userRewardPerTokenPaid;
-    mapping(address => uint256) public rewards;
+	constructor(
+		address _yf20,
+		address _yf721
+	) public {
+		YF20 = IERC20(_yf20);
+		YF721 = IYF721(_yf721);
+	}
 
-    event RewardAdded(uint256 reward);
-    event Staked(address indexed user, uint256 amount);
-    event Withdrawn(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, uint256 reward);
+	function getRandom() internal view returns (uint256) {
+		uint256 seed = uint256(keccak256(abi.encodePacked(now, block.difficulty, msg.sender)));
+        uint256 rnd = UniformRandomNumber.uniform(seed, 700);
+		return rnd;
+	}
 
-    IERC20 public FomoToken;
-
-    constructor(
-		address _lpt,
-		address _fomotoken,
-		address _devaddr,
-		address _prizepool
-	) LPTokenWrapper(_lpt) public {
-        _balances[msg.sender] = 1; // avoid divided by 0
-        _totalSupply = 1;
-        prizePool = _prizepool;
-		devAddress = _devaddr;
-		FomoToken = IERC20(_fomotoken);
-    }
-
-    modifier updateReward(address account) {
-        rewardPerTokenStored = rewardPerToken();
-        lastUpdateTime = lastTimeRewardApplicable();
-        if (account != address(0)) {
-            rewards[account] = earned(account);
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
-        }
-        _;
-    }
-
-    function lastTimeRewardApplicable() public view returns (uint256) {
-        return Math.min(block.timestamp, periodFinish);
-    }
-
-    function rewardPerToken() public view returns (uint256) {
-        return
-            rewardPerTokenStored.add(
-                lastTimeRewardApplicable()
-                    .sub(lastUpdateTime)
-                    .mul(rewardRate)
-                    .mul(1e18)
-                    .div(totalSupply())
-            );
-    }
-
-    function earned(address account) public view returns (uint256) {
-        return
-            balanceOf(account)
-                .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
-                .div(1e18)
-                .add(rewards[account]);
-    }
-
-    // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public override updateReward(msg.sender) checkHalve checkStart {
-        require(amount != 0, "Cannot stake 0");
-        super.stake(amount);
-        emit Staked(msg.sender, amount);
-    }
-
-    function withdraw(uint256 amount) public override updateReward(msg.sender) checkStart {
-        require(amount != 0, "Cannot withdraw 0");
-        super.withdraw(amount);
-        emit Withdrawn(msg.sender, amount);
-    }
-
-    function exit() external {
-        withdraw(balanceOf(msg.sender));
-        getReward();
-        claim();
-    }
-
-    function getReward() public updateReward(msg.sender) checkHalve checkStart {
-        uint256 reward = earned(msg.sender);
-		uint256 devReward = reward.mul(devFee).div(1000);
-		uint256 poolReward = reward.mul(poolShare).div(1000);
-		reward = reward.sub(devReward).sub(poolReward);
-        if (reward != 0) {
-            rewards[msg.sender] = 0;
-			FomoToken.safeTransfer(devAddress, devReward);
-			FomoToken.safeTransfer(prizePool, poolReward);
-            FomoToken.safeTransfer(msg.sender, reward);
-            emit RewardPaid(msg.sender, reward);
-        }
-    }
-
-	modifier checkStart() {
-		require(block.timestamp > startTime, "not yet");
+	modifier onlyYFHolder() {
+		require(YF20.balanceOf(msg.sender) >= minYF20);
 		_;
 	}
 
-	modifier checkHalve() {
-		if (block.timestamp >= periodFinish) {
-			initReward = initReward.mul(50).div(100);
-			rewardRate = initReward.div(DURATION);
-			periodFinish = block.timestamp.add(DURATION);
-		}
-		_;
+	function isYF721(uint256 id) internal view returns (bool) {
+		string memory char = YF721.getYF721Info(id);
+		return keccak256(bytes(char)) == keccak256(bytes("YF721"));
 	}
 
-    /**
-     * @dev This function must be triggered by the contribution token approve-and-call fallback.
-     *      It will update reward rate and time.
-     * @param _amount Amount of reward tokens added to the pool
-     */
-    function receiveApproval(uint256 _amount) external updateReward(address(0)) {
-        require(_amount != 0, "Cannot approve 0");
-
-        if (block.timestamp >= periodFinish) {
-            rewardRate = _amount.div(DURATION);
-        } else {
-            uint256 remaining = periodFinish.sub(block.timestamp);
-            uint256 leftover = remaining.mul(rewardRate);
-            rewardRate = _amount.add(leftover).div(DURATION);
-        }
-        lastUpdateTime = block.timestamp;
-        periodFinish = block.timestamp.add(DURATION);
-
-        FomoToken.safeTransferFrom(msg.sender, address(this), _amount);
-        emit RewardAdded(_amount);
-    }
+	function draw(uint256 tokenId) external onlyYFHolder {
+		require(YF721.ownerOf(tokenId) == msg.sender);
+		require(isYF721(tokenId));
+		YF721.safeTransferFrom(msg.sender, burnAddress, tokenId);
+		uint256 rnd = getRandom();
+		uint256 reward = YF20.balanceOf(address(this)).mul(rnd.add(700).div(10000));
+		YF20.safeTransferFrom(address(this), msg.sender, reward);
+	}
 }

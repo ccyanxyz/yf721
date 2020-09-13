@@ -654,30 +654,7 @@ interface IERC721 is IERC165 {
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) external;
 }
 
-// File: contracts/rnd.sol
-
-pragma solidity ^0.6.0;
-
-library UniformRandomNumber {
-  /// @notice Select a random number without modulo bias using a random seed and upper bound
-  /// @param _entropy The seed for randomness
-  /// @param _upperBound The upper bound of the desired number
-  /// @return A random number less than the _upperBound
-  function uniform(uint256 _entropy, uint256 _upperBound) internal pure returns (uint256) {
-    require(_upperBound > 0, "UniformRand/min-bound");
-    uint256 min = -_upperBound % _upperBound;
-    uint256 random = _entropy;
-    while (true) {
-      if (random >= min) {
-        break;
-      }
-      random = uint256(keccak256(abi.encodePacked(random)));
-    }
-    return random % _upperBound;
-  }
-}
-
-// File: contracts/fomoPrizePool.sol
+// File: contracts/yf721Auction.sol
 
 pragma solidity ^0.6.0;
 
@@ -687,49 +664,139 @@ pragma solidity ^0.6.0;
 
 
 
-interface IFOMO721 is IERC721 {
-	function getFomo721Info(uint256 index) external view returns (string memory);
-}
-
-contract FomoPrizePool {
+contract YF721Auction {
     using SafeMath for uint256;
+    using Address for address;
 	using SafeERC20 for IERC20;
-    
-	IERC20 public FomoToken;
-	IFOMO721 public Fomo721;
-	uint256 public minFomo = 10 * 1e18;
-	address constant public burnAddress = 0x00000000000000000000000000000000DeaDBeef;
 
-	constructor(
-		address _fomotoken,
-		address _fomo721
-	) public {
-		FomoToken = IERC20(_fomotoken);
-		Fomo721 = IFOMO721(_fomo721);
+    event AuctionCreated(uint256 _index, address _creator, uint256 _tokenId);
+    event AuctionBid(uint256 _index, address _bidder, uint256 amount);
+    event Claim(uint256 auctionIndex, address claimer);
+
+    enum Status { pending, active, finished }
+	IERC20 public YF20;
+	IERC721 public YF721;
+
+    struct Auction {
+        uint256 tokenId;
+        address creator;
+        uint256 startTime;
+        uint256 duration;
+        uint256 currentBidAmount;
+        address currentBidOwner;
+        uint256 bidCount;
+    }
+    Auction[] public auctions;
+
+	constructor(address _yf20, address _yf721) public {
+		YF20 = IERC20(_yf20);
+		YF721 = IERC721(_yf721);
 	}
 
-	function getRandom() internal view returns (uint256) {
-		uint256 seed = uint256(keccak256(abi.encodePacked(now, block.difficulty, msg.sender)));
-        uint256 rnd = UniformRandomNumber.uniform(seed, 700);
-		return rnd;
-	}
+    function createAuction(uint256 _tokenId,
+                           uint256 _startPrice,
+                           uint256 _startTime,
+                           uint256 _duration) public returns (uint256) {
 
-	modifier onlyFomoHolder() {
-		require(FomoToken.balanceOf(msg.sender) >= minFomo);
-		_;
-	}
+        require(YF721.ownerOf(_tokenId) == msg.sender);
+		YF721.safeTransferFrom(msg.sender, address(this), _tokenId);
 
-	function isFomo721(uint256 id) internal view returns (bool) {
-		string memory char = Fomo721.getFomo721Info(id);
-		return keccak256(bytes(char)) == keccak256(bytes("Fomo721"));
-	}
+        if (_startTime == 0) { _startTime = now; }
 
-	function draw(uint256 tokenId) external onlyFomoHolder {
-		require(Fomo721.ownerOf(tokenId) == msg.sender);
-		require(isFomo721(tokenId));
-		Fomo721.safeTransferFrom(msg.sender, burnAddress, tokenId);
-		uint256 rnd = getRandom();
-		uint256 reward = FomoToken.balanceOf(address(this)).mul(rnd.add(700).div(10000));
-		FomoToken.safeTransferFrom(address(this), msg.sender, reward);
-	}
+        Auction memory auction = Auction({
+            creator: msg.sender,
+            tokenId: _tokenId,
+            startTime: _startTime,
+            duration: _duration,
+            currentBidAmount: _startPrice,
+            currentBidOwner: address(0),
+            bidCount: 0
+        });
+        auctions.push(auction);
+		uint256 index = auctions.length - 1;
+
+        emit AuctionCreated(index, auction.creator, auction.tokenId);
+
+        return index;
+    }
+
+    function bid(uint256 auctionIndex, uint256 amount) public returns (bool) {
+        Auction storage auction = auctions[auctionIndex];
+        require(auction.creator != address(0));
+        require(isActive(auctionIndex));
+
+        if (amount > auction.currentBidAmount) {
+            // we got a better bid. Return tokens to the previous best bidder
+            // and register the sender as `currentBidOwner`
+            YF20.safeTransferFrom(msg.sender, address(this), amount);
+            if (auction.currentBidAmount != 0) {
+                // return funds to the previuos bidder
+                YF20.safeTransferFrom(
+					address(this),
+                    auction.currentBidOwner,
+                    auction.currentBidAmount
+                );
+            }
+            // register new bidder
+            auction.currentBidAmount = amount;
+            auction.currentBidOwner = msg.sender;
+            auction.bidCount = auction.bidCount.add(1);
+
+            emit AuctionBid(auctionIndex, msg.sender, amount);
+            return true;
+        }
+        return false;
+    }
+
+    function getTotalAuctions() public view returns (uint256) { return auctions.length; }
+
+    function isActive(uint256 index) public view returns (bool) { return getStatus(index) == Status.active; }
+
+    function isFinished(uint256 index) public view returns (bool) { return getStatus(index) == Status.finished; }
+
+    function getStatus(uint256 index) public view returns (Status) {
+        Auction storage auction = auctions[index];
+        if (now < auction.startTime) {
+            return Status.pending;
+        } else if (now < auction.startTime.add(auction.duration)) {
+            return Status.active;
+        } else {
+            return Status.finished;
+        }
+    }
+
+    function getCurrentBidOwner(uint256 auctionIndex) public view returns (address) { return auctions[auctionIndex].currentBidOwner; }
+
+    function getCurrentBidAmount(uint256 auctionIndex) public view returns (uint256) { return auctions[auctionIndex].currentBidAmount; }
+
+    function getBidCount(uint256 auctionIndex) public view returns (uint256) { return auctions[auctionIndex].bidCount; }
+
+    function getWinner(uint256 auctionIndex) public view returns (address) {
+        require(isFinished(auctionIndex));
+		if(auctions[auctionIndex].currentBidOwner == address(0)) {
+			return auctions[auctionIndex].creator;
+		}
+        return auctions[auctionIndex].currentBidOwner;
+    }
+
+    function claimYF20(uint256 auctionIndex) public {
+        require(isFinished(auctionIndex));
+        Auction storage auction = auctions[auctionIndex];
+
+        require(auction.creator == msg.sender);
+        YF20.safeTransferFrom(address(this), auction.creator, auction.currentBidAmount);
+
+        emit Claim(auctionIndex, auction.creator);
+    }
+
+    function claimYF721(uint256 auctionIndex) public {
+        require(isFinished(auctionIndex));
+        Auction storage auction = auctions[auctionIndex];
+
+        address winner = getWinner(auctionIndex);
+        require(winner == msg.sender);
+
+        YF721.transferFrom(address(this), winner, auction.tokenId);
+        emit Claim(auctionIndex, winner);
+    }
 }

@@ -496,165 +496,7 @@ library SafeERC20 {
     }
 }
 
-// File: @openzeppelin/contracts/introspection/IERC165.sol
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.0;
-
-/**
- * @dev Interface of the ERC165 standard, as defined in the
- * https://eips.ethereum.org/EIPS/eip-165[EIP].
- *
- * Implementers can declare support of contract interfaces, which can then be
- * queried by others ({ERC165Checker}).
- *
- * For an implementation, see {ERC165}.
- */
-interface IERC165 {
-    /**
-     * @dev Returns true if this contract implements the interface defined by
-     * `interfaceId`. See the corresponding
-     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]
-     * to learn more about how these ids are created.
-     *
-     * This function call must use less than 30 000 gas.
-     */
-    function supportsInterface(bytes4 interfaceId) external view returns (bool);
-}
-
-// File: @openzeppelin/contracts/token/ERC721/IERC721.sol
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.2;
-
-
-/**
- * @dev Required interface of an ERC721 compliant contract.
- */
-interface IERC721 is IERC165 {
-    /**
-     * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
-     */
-    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
-
-    /**
-     * @dev Emitted when `owner` enables `approved` to manage the `tokenId` token.
-     */
-    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
-
-    /**
-     * @dev Emitted when `owner` enables or disables (`approved`) `operator` to manage all of its assets.
-     */
-    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
-
-    /**
-     * @dev Returns the number of tokens in ``owner``'s account.
-     */
-    function balanceOf(address owner) external view returns (uint256 balance);
-
-    /**
-     * @dev Returns the owner of the `tokenId` token.
-     *
-     * Requirements:
-     *
-     * - `tokenId` must exist.
-     */
-    function ownerOf(uint256 tokenId) external view returns (address owner);
-
-    /**
-     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
-     * are aware of the ERC721 protocol to prevent tokens from being forever locked.
-     *
-     * Requirements:
-     *
-     * - `from` cannot be the zero address.
-     * - `to` cannot be the zero address.
-     * - `tokenId` token must exist and be owned by `from`.
-     * - If the caller is not `from`, it must be have been allowed to move this token by either {approve} or {setApprovalForAll}.
-     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
-     *
-     * Emits a {Transfer} event.
-     */
-    function safeTransferFrom(address from, address to, uint256 tokenId) external;
-
-    /**
-     * @dev Transfers `tokenId` token from `from` to `to`.
-     *
-     * WARNING: Usage of this method is discouraged, use {safeTransferFrom} whenever possible.
-     *
-     * Requirements:
-     *
-     * - `from` cannot be the zero address.
-     * - `to` cannot be the zero address.
-     * - `tokenId` token must be owned by `from`.
-     * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
-     *
-     * Emits a {Transfer} event.
-     */
-    function transferFrom(address from, address to, uint256 tokenId) external;
-
-    /**
-     * @dev Gives permission to `to` to transfer `tokenId` token to another account.
-     * The approval is cleared when the token is transferred.
-     *
-     * Only a single account can be approved at a time, so approving the zero address clears previous approvals.
-     *
-     * Requirements:
-     *
-     * - The caller must own the token or be an approved operator.
-     * - `tokenId` must exist.
-     *
-     * Emits an {Approval} event.
-     */
-    function approve(address to, uint256 tokenId) external;
-
-    /**
-     * @dev Returns the account approved for `tokenId` token.
-     *
-     * Requirements:
-     *
-     * - `tokenId` must exist.
-     */
-    function getApproved(uint256 tokenId) external view returns (address operator);
-
-    /**
-     * @dev Approve or remove `operator` as an operator for the caller.
-     * Operators can call {transferFrom} or {safeTransferFrom} for any token owned by the caller.
-     *
-     * Requirements:
-     *
-     * - The `operator` cannot be the caller.
-     *
-     * Emits an {ApprovalForAll} event.
-     */
-    function setApprovalForAll(address operator, bool _approved) external;
-
-    /**
-     * @dev Returns if the `operator` is allowed to manage all of the assets of `owner`.
-     *
-     * See {setApprovalForAll}
-     */
-    function isApprovedForAll(address owner, address operator) external view returns (bool);
-
-    /**
-      * @dev Safely transfers `tokenId` token from `from` to `to`.
-      *
-      * Requirements:
-      *
-     * - `from` cannot be the zero address.
-     * - `to` cannot be the zero address.
-      * - `tokenId` token must exist and be owned by `from`.
-      * - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}.
-      * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
-      *
-      * Emits a {Transfer} event.
-      */
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) external;
-}
-
-// File: contracts/fomo721Auction.sol
+// File: contracts/yf721Pool.sol
 
 pragma solidity ^0.6.0;
 
@@ -662,141 +504,203 @@ pragma solidity ^0.6.0;
 
 
 
-
-
-contract Fomo721Auction {
+contract LPTokenWrapper {
     using SafeMath for uint256;
-    using Address for address;
-	using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20;
 
-    event AuctionCreated(uint256 _index, address _creator, uint256 _tokenId);
-    event AuctionBid(uint256 _index, address _bidder, uint256 amount);
-    event Claim(uint256 auctionIndex, address claimer);
-
-    enum Status { pending, active, finished }
-	IERC20 public FomoToken;
-	IERC721 public Fomo721;
-
-    struct Auction {
-        uint256 tokenId;
-        address creator;
-        uint256 startTime;
-        uint256 duration;
-        uint256 currentBidAmount;
-        address currentBidOwner;
-        uint256 bidCount;
-    }
-    Auction[] public auctions;
-
-	constructor(address _fomotoken, address _fomo721) public {
-		FomoToken = IERC20(_fomotoken);
-		Fomo721 = IERC721(_fomo721);
+    IERC20 public LPT;
+	constructor(address _lpt) public {
+		LPT = IERC20(_lpt);
 	}
 
-    function createAuction(uint256 _tokenId,
-                           uint256 _startPrice,
-                           uint256 _startTime,
-                           uint256 _duration) public returns (uint256) {
+    uint256 public _totalSupply;
+    mapping(address => uint256) public _balances;
 
-        require(Fomo721.ownerOf(_tokenId) == msg.sender);
-		Fomo721.safeTransferFrom(msg.sender, address(this), _tokenId);
+    uint256 public _profitPerShare; // x 1e18, monotonically increasing.
+    mapping(address => uint256) public _unrealized; // x 1e18
+    mapping(address => uint256) public _realized; // last paid _profitPerShare
+    event LPTPaid(address indexed user, uint256 profit);
 
-        if (_startTime == 0) { _startTime = now; }
-
-        Auction memory auction = Auction({
-            creator: msg.sender,
-            tokenId: _tokenId,
-            startTime: _startTime,
-            duration: _duration,
-            currentBidAmount: _startPrice,
-            currentBidOwner: address(0),
-            bidCount: 0
-        });
-        auctions.push(auction);
-		uint256 index = auctions.length - 1;
-
-        emit AuctionCreated(index, auction.creator, auction.tokenId);
-
-        return index;
+    function totalSupply() public view returns (uint256) {
+        return _totalSupply;
     }
 
-    function bid(uint256 auctionIndex, uint256 amount) public returns (bool) {
-        Auction storage auction = auctions[auctionIndex];
-        require(auction.creator != address(0));
-        require(isActive(auctionIndex));
+    function balanceOf(address account) public view returns (uint256) {
+        return _balances[account];
+    }
 
-        if (amount > auction.currentBidAmount) {
-            // we got a better bid. Return tokens to the previous best bidder
-            // and register the sender as `currentBidOwner`
-            FomoToken.safeTransferFrom(msg.sender, address(this), amount);
-            if (auction.currentBidAmount != 0) {
-                // return funds to the previuos bidder
-                FomoToken.safeTransferFrom(
-					address(this),
-                    auction.currentBidOwner,
-                    auction.currentBidAmount
-                );
-            }
-            // register new bidder
-            auction.currentBidAmount = amount;
-            auction.currentBidOwner = msg.sender;
-            auction.bidCount = auction.bidCount.add(1);
+    function unrealizedProfit(address account) public view returns (uint256) {
+        return _unrealized[account].add(_balances[account].mul(_profitPerShare.sub(_realized[account])).div(1e18));
+    }    
 
-            emit AuctionBid(auctionIndex, msg.sender, amount);
-            return true;
+    modifier update(address account) {
+        // Tells the contract that the buyer doesn't deserve dividends for the tokens before they owned them;
+        // really i know you think you do but you don't
+        // https://etherscan.io/address/0xb3775fb83f7d12a36e0475abdd1fca35c091efbe#code
+        if (account != address(0)) {
+            _unrealized[account] = unrealizedProfit(account);
+            _realized[account] = _profitPerShare;
         }
-        return false;
+        _;
+    }    
+
+    function stake(uint256 amount) update(msg.sender) public virtual {
+        _totalSupply = _totalSupply.add(amount);
+        _balances[msg.sender] = _balances[msg.sender].add(amount);
+        LPT.safeTransferFrom(msg.sender, address(this), amount);
     }
 
-    function getTotalAuctions() public view returns (uint256) { return auctions.length; }
+    function withdraw(uint256 amount) update(msg.sender) public virtual {
+        _totalSupply = _totalSupply.sub(amount);
+        _balances[msg.sender] = _balances[msg.sender].sub(amount);
+        LPT.safeTransfer(msg.sender, amount);
+    }
 
-    function isActive(uint256 index) public view returns (bool) { return getStatus(index) == Status.active; }
-
-    function isFinished(uint256 index) public view returns (bool) { return getStatus(index) == Status.finished; }
-
-    function getStatus(uint256 index) public view returns (Status) {
-        Auction storage auction = auctions[index];
-        if (now < auction.startTime) {
-            return Status.pending;
-        } else if (now < auction.startTime.add(auction.duration)) {
-            return Status.active;
-        } else {
-            return Status.finished;
+    function claim() update(msg.sender) public {
+        uint256 profit = _unrealized[msg.sender];
+        if (profit != 0) {
+            _unrealized[msg.sender] = 0;
+            LPT.safeTransfer(msg.sender, profit);
+            emit LPTPaid(msg.sender, profit);
         }
     }
+}
 
-    function getCurrentBidOwner(uint256 auctionIndex) public view returns (address) { return auctions[auctionIndex].currentBidOwner; }
+contract YF721Pool is LPTokenWrapper {
+    uint256 public DURATION = 7 days;
+	uint256 public initReward = 10000 * 1e18;
+	uint256 public startTime;
+    uint256 public periodFinish;
+    uint256 public rewardRate;
+    uint256 public lastUpdateTime;
+    uint256 public rewardPerTokenStored;
+	uint256 public devFee = 30; // 30 / 1000 = 3%
+	uint256 public poolShare = 100; // 100 / 1000 = 10%
+	address public devAddress;
+	address public prizePool;
 
-    function getCurrentBidAmount(uint256 auctionIndex) public view returns (uint256) { return auctions[auctionIndex].currentBidAmount; }
+    mapping(address => uint256) public userRewardPerTokenPaid;
+    mapping(address => uint256) public rewards;
 
-    function getBidCount(uint256 auctionIndex) public view returns (uint256) { return auctions[auctionIndex].bidCount; }
+    event RewardAdded(uint256 reward);
+    event Staked(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
+    event RewardPaid(address indexed user, uint256 reward);
 
-    function getWinner(uint256 auctionIndex) public view returns (address) {
-        require(isFinished(auctionIndex));
-		if(auctions[auctionIndex].currentBidOwner == address(0)) {
-			return auctions[auctionIndex].creator;
+    IERC20 public FomoToken;
+
+    constructor(
+		address _lpt,
+		address _fomotoken,
+		address _devaddr,
+		address _prizepool
+	) LPTokenWrapper(_lpt) public {
+        _balances[msg.sender] = 1; // avoid divided by 0
+        _totalSupply = 1;
+        prizePool = _prizepool;
+		devAddress = _devaddr;
+		FomoToken = IERC20(_fomotoken);
+    }
+
+    modifier updateReward(address account) {
+        rewardPerTokenStored = rewardPerToken();
+        lastUpdateTime = lastTimeRewardApplicable();
+        if (account != address(0)) {
+            rewards[account] = earned(account);
+            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+        }
+        _;
+    }
+
+    function lastTimeRewardApplicable() public view returns (uint256) {
+        return Math.min(block.timestamp, periodFinish);
+    }
+
+    function rewardPerToken() public view returns (uint256) {
+        return
+            rewardPerTokenStored.add(
+                lastTimeRewardApplicable()
+                    .sub(lastUpdateTime)
+                    .mul(rewardRate)
+                    .mul(1e18)
+                    .div(totalSupply())
+            );
+    }
+
+    function earned(address account) public view returns (uint256) {
+        return
+            balanceOf(account)
+                .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
+                .div(1e18)
+                .add(rewards[account]);
+    }
+
+    // stake visibility is public as overriding LPTokenWrapper's stake() function
+    function stake(uint256 amount) public override updateReward(msg.sender) checkHalve checkStart {
+        require(amount != 0, "Cannot stake 0");
+        super.stake(amount);
+        emit Staked(msg.sender, amount);
+    }
+
+    function withdraw(uint256 amount) public override updateReward(msg.sender) checkStart {
+        require(amount != 0, "Cannot withdraw 0");
+        super.withdraw(amount);
+        emit Withdrawn(msg.sender, amount);
+    }
+
+    function exit() external {
+        withdraw(balanceOf(msg.sender));
+        getReward();
+        claim();
+    }
+
+    function getReward() public updateReward(msg.sender) checkHalve checkStart {
+        uint256 reward = earned(msg.sender);
+		uint256 devReward = reward.mul(devFee).div(1000);
+		uint256 poolReward = reward.mul(poolShare).div(1000);
+		reward = reward.sub(devReward).sub(poolReward);
+        if (reward != 0) {
+            rewards[msg.sender] = 0;
+			FomoToken.safeTransfer(devAddress, devReward);
+			FomoToken.safeTransfer(prizePool, poolReward);
+            FomoToken.safeTransfer(msg.sender, reward);
+            emit RewardPaid(msg.sender, reward);
+        }
+    }
+
+	modifier checkStart() {
+		require(block.timestamp > startTime, "not yet");
+		_;
+	}
+
+	modifier checkHalve() {
+		if (block.timestamp >= periodFinish) {
+			initReward = initReward.mul(50).div(100);
+			rewardRate = initReward.div(DURATION);
+			periodFinish = block.timestamp.add(DURATION);
 		}
-        return auctions[auctionIndex].currentBidOwner;
-    }
+		_;
+	}
 
-    function claimFomoToken(uint256 auctionIndex) public {
-        require(isFinished(auctionIndex));
-        Auction storage auction = auctions[auctionIndex];
+    /**
+     * @dev This function must be triggered by the contribution token approve-and-call fallback.
+     *      It will update reward rate and time.
+     * @param _amount Amount of reward tokens added to the pool
+     */
+    function receiveApproval(uint256 _amount) external updateReward(address(0)) {
+        require(_amount != 0, "Cannot approve 0");
 
-        require(auction.creator == msg.sender);
-        FomoToken.safeTransferFrom(address(this), auction.creator, auction.currentBidAmount);
+        if (block.timestamp >= periodFinish) {
+            rewardRate = _amount.div(DURATION);
+        } else {
+            uint256 remaining = periodFinish.sub(block.timestamp);
+            uint256 leftover = remaining.mul(rewardRate);
+            rewardRate = _amount.add(leftover).div(DURATION);
+        }
+        lastUpdateTime = block.timestamp;
+        periodFinish = block.timestamp.add(DURATION);
 
-        emit Claim(auctionIndex, auction.creator);
-    }
-
-    function claimFomo721(uint256 auctionIndex) public {
-        require(isFinished(auctionIndex));
-        Auction storage auction = auctions[auctionIndex];
-
-        address winner = getWinner(auctionIndex);
-        require(winner == msg.sender);
-
-        Fomo721.transferFrom(address(this), winner, auction.tokenId);
-        emit Claim(auctionIndex, winner);
+        FomoToken.safeTransferFrom(msg.sender, address(this), _amount);
+        emit RewardAdded(_amount);
     }
 }

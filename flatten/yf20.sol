@@ -1,5 +1,5 @@
 
-// File: contracts/fomoToken.sol
+// File: contracts/yf20.sol
 
 pragma solidity ^0.6.0;
 
@@ -15,13 +15,13 @@ contract DSMath {
     }
 }
 
-contract FomoToken is DSMath {
+contract YF20 is DSMath {
     uint256                                           public  totalSupply;
     mapping (address => uint256)                      public  balanceOf;
     mapping (address => mapping (address => uint256)) public  allowance;
-    bytes32                                           public  symbol = "FOMO";
+    bytes32                                           public  symbol = "YF20";
     uint256                                           public  decimals = 18;
-    bytes32                                           public  name = "fomotoken";
+    bytes32                                           public  name = "yf20token";
 
     constructor(address chef) public {
         totalSupply = 50000000000000000000000;
