@@ -8,13 +8,13 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./rnd.sol";
 
 contract YF721Piece is ERC721 {
-	using SafeMath for uint256;
+    using SafeMath for uint256;
 	using SafeERC20 for IERC20;
-
-	uint256 burnedCounter = 0;
+    
+    uint256 burnedCounter = 0;
 
 	address owner;
-	constructor(
+    constructor(
 		string memory _char
 	) ERC721(_char, "YF721 Piece") public {
 		owner = msg.sender;
@@ -33,30 +33,30 @@ contract YF721Piece is ERC721 {
 		_mint(_to, _getNextTokenId());
 	}
 
-	function _getNextTokenId() private view returns (uint256) {
-		return totalSupply().add(1).add(burnedCounter);
-	}
+    function _getNextTokenId() private view returns (uint256) {
+        return totalSupply().add(1).add(burnedCounter);
+    }
 
-	function burn(uint256 _tokenId) external {
+    function burn(uint256 _tokenId) external {
 		require(msg.sender == ownerOf(_tokenId));
-		super._burn(_tokenId);
-		burnedCounter++;
-	}
+        super._burn(_tokenId);
+        burnedCounter++;
+    }
 
-	function tokensOfOwner(address _owner) external view returns(uint256[] memory ownerTokens) {
-		uint256 tokenCount = balanceOf(_owner);
+    function tokensOfOwner(address _owner) external view returns(uint256[] memory ownerTokens) {
+        uint256 tokenCount = balanceOf(_owner);
 
-		if (tokenCount == 0) {
-			return new uint256[](0);
-		} else {
-			uint256[] memory result = new uint256[](tokenCount);
-			uint256 resultIndex = 0;
-			uint256 _tokenIdx;
-			for (_tokenIdx = 0; _tokenIdx < tokenCount; _tokenIdx++) {
-				result[resultIndex] = tokenOfOwnerByIndex(_owner, _tokenIdx);
-				resultIndex++;
-			}
-			return result;
-		}
-	}
+        if (tokenCount == 0) {
+            return new uint256[](0);
+        } else {
+            uint256[] memory result = new uint256[](tokenCount);
+            uint256 resultIndex = 0;
+            uint256 _tokenIdx;
+            for (_tokenIdx = 0; _tokenIdx < tokenCount; _tokenIdx++) {
+                result[resultIndex] = tokenOfOwnerByIndex(_owner, _tokenIdx);
+                resultIndex++;
+            }
+            return result;
+        }
+    }
 }
