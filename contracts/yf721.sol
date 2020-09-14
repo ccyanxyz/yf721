@@ -9,14 +9,14 @@ import "./rnd.sol";
 import "./IYF721Piece.sol";
 
 contract YF721 is ERC721 {
-    using SafeMath for uint256;
+	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
-    
+
 	uint256 constant public mintPieceFee = 1 * 1e18;
 	IERC20 public YF20;
 	address public prizePool;
 	address constant public burnAddress = 0x00000000000000000000000000000000DeaDBeef;
-	
+
 	uint256 public burnRatio = 500; // 50%
 
 	IYF721Piece public _Y; 
@@ -24,10 +24,10 @@ contract YF721 is ERC721 {
 	IYF721Piece public _7;
 	IYF721Piece public _2;
 	IYF721Piece public _1;
-    
-    uint256 burnedCounter = 0;
 
-    constructor(
+	uint256 burnedCounter = 0;
+
+	constructor(
 		address _y,
 		address _f,
 		address _seven,
@@ -53,30 +53,30 @@ contract YF721 is ERC721 {
 		_mint(msg.sender, tokenId);
 	}
 
-    function _getNextTokenId() private view returns (uint256) {
-        return totalSupply().add(1).add(burnedCounter);
-    }
+	function _getNextTokenId() private view returns (uint256) {
+		return totalSupply().add(1).add(burnedCounter);
+	}
 
-    function burn(uint256 _tokenId) external {
+	function burn(uint256 _tokenId) external {
 		require(msg.sender == ownerOf(_tokenId));
-        super._burn(_tokenId);
-        burnedCounter++;
-    }
+		super._burn(_tokenId);
+		burnedCounter++;
+	}
 
-    function tokensOfOwner(address _owner) external view returns(uint256[] memory ownerTokens) {
-        uint256 tokenCount = balanceOf(_owner);
+	function tokensOfOwner(address _owner) external view returns(uint256[] memory ownerTokens) {
+		uint256 tokenCount = balanceOf(_owner);
 
-        if (tokenCount == 0) {
-            return new uint256[](0);
-        } else {
-            uint256[] memory result = new uint256[](tokenCount);
-            uint256 resultIndex = 0;
-            uint256 _tokenIdx;
-            for (_tokenIdx = 0; _tokenIdx < tokenCount; _tokenIdx++) {
-                result[resultIndex] = tokenOfOwnerByIndex(_owner, _tokenIdx);
-                resultIndex++;
-            }
-            return result;
-        }
-    }
+		if (tokenCount == 0) {
+			return new uint256[](0);
+		} else {
+			uint256[] memory result = new uint256[](tokenCount);
+			uint256 resultIndex = 0;
+			uint256 _tokenIdx;
+			for (_tokenIdx = 0; _tokenIdx < tokenCount; _tokenIdx++) {
+				result[resultIndex] = tokenOfOwnerByIndex(_owner, _tokenIdx);
+				resultIndex++;
+			}
+			return result;
+		}
+	}
 }

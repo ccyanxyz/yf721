@@ -8,9 +8,9 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./rnd.sol";
 
 contract YF721PrizePool {
-    using SafeMath for uint256;
+	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
-    
+
 	IERC20 public YF20;
 	IERC721 public YF721;
 	uint256 public minYF20 = 10 * 1e18;
@@ -26,7 +26,7 @@ contract YF721PrizePool {
 
 	function getRandom() internal view returns (uint256) {
 		uint256 seed = uint256(keccak256(abi.encodePacked(now, block.difficulty, msg.sender)));
-        uint256 rnd = UniformRandomNumber.uniform(seed, 700);
+		uint256 rnd = UniformRandomNumber.uniform(seed, 700);
 		return rnd;
 	}
 

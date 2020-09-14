@@ -10,14 +10,14 @@ import "./IYF721Piece.sol";
 
 
 contract YF721PieceMinter {
-    using SafeMath for uint256;
+	using SafeMath for uint256;
 	using SafeERC20 for IERC20;
-    
+
 	uint256 constant public mintPieceFee = 1 * 1e18;
 	IERC20 public YF20;
 	address public prizePool;
 	address constant public burnAddress = 0x00000000000000000000000000000000DeaDBeef;
-	
+
 	uint256 public burnRatio = 500; // 50%
 
 	IYF721Piece public _Y;
@@ -32,10 +32,10 @@ contract YF721PieceMinter {
 	uint256 public _2chance = 9960;
 	uint256 public _1chance = 9980;
 
-    uint256 burnedCounter = 0;
+	uint256 burnedCounter = 0;
 
 	address owner;
-    constructor(
+	constructor(
 		address _yf20,
 		address _y,
 		address _f,
@@ -91,7 +91,7 @@ contract YF721PieceMinter {
 		} else if(rnd >= _ychance) {
 			_Y.mint(msg.sender);
 		}/* else {
-			// Don't give up, bro!
-		}*/
-	}
+		// Don't give up, bro!
+	}*/
+}
 }
