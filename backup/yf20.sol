@@ -20,9 +20,9 @@ contract YF20 is DSMath {
     uint256                                           public  decimals = 18;
     bytes32                                           public  name = "yf20token";
 
-    constructor(address owner) public {
+    constructor(address chef) public {
         totalSupply = 1000000 * 1e18;
-        balanceOf[owner] = 1000000 * 1e18;
+        balanceOf[chef] = 1000000 * 1e18;
     }
 
     event Approval(address indexed src, address indexed guy, uint wad);

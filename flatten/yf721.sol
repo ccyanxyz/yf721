@@ -1857,7 +1857,7 @@ contract YF721 is ERC721 {
     using SafeMath for uint256;
 	using SafeERC20 for IERC20;
     
-	uint256 constant public mintPieceFee = 100 * 1e18;
+	uint256 constant public mintPieceFee = 1 * 1e18;
 	IERC20 public YF20;
 	address public prizePool;
 	address constant public burnAddress = 0x00000000000000000000000000000000DeaDBeef;

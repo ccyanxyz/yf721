@@ -1,3 +1,6 @@
+
+// File: contracts/testToken.sol
+
 pragma solidity ^0.6.0;
 
 contract DSMath {
@@ -12,17 +15,17 @@ contract DSMath {
     }
 }
 
-contract YF20 is DSMath {
+contract TestToken is DSMath {
     uint256                                           public  totalSupply;
     mapping (address => uint256)                      public  balanceOf;
     mapping (address => mapping (address => uint256)) public  allowance;
-    bytes32                                           public  symbol = "YF20";
+    bytes32                                           public  symbol = "TT";
     uint256                                           public  decimals = 18;
-    bytes32                                           public  name = "yf20token";
+    bytes32                                           public  name = "testtoken";
 
-    constructor(address owner) public {
+    constructor(address chef) public {
         totalSupply = 1000000 * 1e18;
-        balanceOf[owner] = 1000000 * 1e18;
+        balanceOf[chef] = 1000000 * 1e18;
     }
 
     event Approval(address indexed src, address indexed guy, uint wad);

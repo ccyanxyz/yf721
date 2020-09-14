@@ -6,51 +6,31 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./rnd.sol";
-import "./IYF721Piece.sol";
 
-contract YF721 is ERC721 {
+contract YF721Piece is ERC721 {
     using SafeMath for uint256;
 	using SafeERC20 for IERC20;
     
-	uint256 constant public mintPieceFee = 1 * 1e18;
-	IERC20 public YF20;
-	address public prizePool;
-	address constant public burnAddress = 0x00000000000000000000000000000000DeaDBeef;
-	
-	uint256 public burnRatio = 500; // 50%
-
-	IYF721Piece public _Y; 
-	IYF721Piece public _F;
-	IYF721Piece public _7;
-	IYF721Piece public _2;
-	IYF721Piece public _1;
-    
     uint256 burnedCounter = 0;
 
+	address owner;
     constructor(
-		address _y,
-		address _f,
-		address _seven,
-		address _two,
-		address _one
-	) ERC721("YF721", "YF721") public {
-		_Y = IYF721Piece(_y); 
-		_F = IYF721Piece(_f); 
-		_7 = IYF721Piece(_seven); 
-		_2 = IYF721Piece(_two); 
-		_1 = IYF721Piece(_one); 
+		string memory _char
+	) ERC721(_char, "YF721 Piece") public {
+		owner = msg.sender;
 	}
 
-	function getRandom() internal view returns (uint256) {
-		uint256 seed = uint256(keccak256(abi.encodePacked(now, block.difficulty, msg.sender)));
-		uint256 rnd = UniformRandomNumber.uniform(seed, 10000);
-		return rnd;
+	modifier onlyOwner() {
+		require(msg.sender == owner);
+		_;
 	}
 
-	function mintYF721(uint256 id1, uint256 id2, uint256 id3, uint256 id4, uint256 id5) external {
-		_Y.burn(id1); _F.burn(id2); _7.burn(id3); _2.burn(id4); _1.burn(id5);
-		uint256 tokenId = _getNextTokenId();
-		_mint(msg.sender, tokenId);
+	function setMinter(address _minter) external onlyOwner {
+		owner = _minter;
+	}
+
+	function mint(address _to) onlyOwner external {
+		_mint(_to, _getNextTokenId());
 	}
 
     function _getNextTokenId() private view returns (uint256) {

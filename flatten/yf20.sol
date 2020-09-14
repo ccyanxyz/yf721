@@ -24,8 +24,8 @@ contract YF20 is DSMath {
     bytes32                                           public  name = "yf20token";
 
     constructor(address chef) public {
-        totalSupply = 50000000000000000000000;
-        balanceOf[chef] = 50000000000000000000000;
+        totalSupply = 1000000 * 1e18;
+        balanceOf[chef] = 1000000 * 1e18;
     }
 
     event Approval(address indexed src, address indexed guy, uint wad);

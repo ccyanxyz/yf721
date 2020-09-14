@@ -587,11 +587,11 @@ contract YF721Pool is LPTokenWrapper {
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-    IERC20 public FomoToken;
+    IERC20 public YF20;
 
     constructor(
 		address _lpt,
-		address _fomotoken,
+		address _yf20,
 		address _devaddr,
 		address _prizepool
 	) LPTokenWrapper(_lpt) public {
@@ -599,7 +599,7 @@ contract YF721Pool is LPTokenWrapper {
         _totalSupply = 1;
         prizePool = _prizepool;
 		devAddress = _devaddr;
-		FomoToken = IERC20(_fomotoken);
+		YF20 = IERC20(_yf20);
     }
 
     modifier updateReward(address account) {
@@ -661,9 +661,9 @@ contract YF721Pool is LPTokenWrapper {
 		reward = reward.sub(devReward).sub(poolReward);
         if (reward != 0) {
             rewards[msg.sender] = 0;
-			FomoToken.safeTransfer(devAddress, devReward);
-			FomoToken.safeTransfer(prizePool, poolReward);
-            FomoToken.safeTransfer(msg.sender, reward);
+			YF20.safeTransfer(devAddress, devReward);
+			YF20.safeTransfer(prizePool, poolReward);
+            YF20.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }
@@ -700,7 +700,7 @@ contract YF721Pool is LPTokenWrapper {
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp.add(DURATION);
 
-        FomoToken.safeTransferFrom(msg.sender, address(this), _amount);
+        YF20.safeTransferFrom(msg.sender, address(this), _amount);
         emit RewardAdded(_amount);
     }
 }
